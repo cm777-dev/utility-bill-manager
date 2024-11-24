@@ -1,0 +1,33 @@
+services:
+  # Backend API service
+  - type: web
+    name: utility-bill-manager-api
+    env: python
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.16
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: utility-bill-db
+          property: connectionString
+
+  # Frontend service
+  - type: web
+    name: utility-bill-manager-web
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/build
+    envVars:
+      - key: NODE_VERSION
+        value: 14
+      - key: REACT_APP_API_URL
+        value: https://utility-bill-manager-api.onrender.com
+
+databases:
+  - name: utility-bill-db
+    databaseName: utility_bill_manager
+    user: utility_bill_manager

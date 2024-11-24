@@ -1,0 +1,44 @@
+{
+  "name": "utility-bill-manager",
+  "description": "A comprehensive SaaS platform for tracking and analyzing utility bills",
+  "keywords": [
+    "utility",
+    "bills",
+    "management",
+    "sustainability",
+    "compliance"
+  ],
+  "website": "https://utility-bill-manager.herokuapp.com/",
+  "repository": "https://github.com/yourusername/utility-bill-manager",
+  "success_url": "/",
+  "env": {
+    "FLASK_ENV": {
+      "description": "Flask environment (production/development)",
+      "value": "production"
+    },
+    "SECRET_KEY": {
+      "description": "A secret key for verifying the integrity of signed cookies",
+      "generator": "secret"
+    },
+    "DATABASE_URL": {
+      "description": "URL of your PostgreSQL database",
+      "required": true
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:hobby-dev"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    },
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "scripts": {
+    "postdeploy": "python backend/manage.py db upgrade"
+  }
+}
