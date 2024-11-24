@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy React App
 
 on:
   push:
@@ -7,36 +7,46 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: './frontend/package-lock.json'
 
       - name: Install Dependencies
-        working-directory: frontend
-        run: |
-          npm install
-          npm install gh-pages --save-dev
+        working-directory: ./frontend
+        run: npm ci
 
       - name: Build
-        working-directory: frontend
+        working-directory: ./frontend
+        run: npm run build
         env:
           CI: false
-        run: npm run build
 
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          folder: frontend/build
-          branch: gh-pages
+          path: ./frontend/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
