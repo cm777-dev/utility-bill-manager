@@ -34,6 +34,7 @@ jobs:
         run: npm run build
         env:
           CI: false
+          PUBLIC_URL: https://cm777-dev.github.io/utility-bill-manager
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
