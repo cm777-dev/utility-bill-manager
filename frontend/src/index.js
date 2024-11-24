@@ -1,17 +1,14 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { HashRouter } from 'react-router-dom';
+import ReactDOM from 'react-dom';
+import './index.css';
 import App from './App';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import reportWebVitals from './reportWebVitals';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
+ReactDOM.render(
   <React.StrictMode>
-    <HashRouter>
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <App />
-      </LocalizationProvider>
-    </HashRouter>
-  </React.StrictMode>
+    <App />
+  </React.StrictMode>,
+  document.getElementById('root')
 );
+
+reportWebVitals();

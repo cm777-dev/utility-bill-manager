@@ -25,10 +25,14 @@ jobs:
 
       - name: Install Dependencies
         working-directory: frontend
-        run: npm install
+        run: |
+          npm install
+          npm install gh-pages --save-dev
 
       - name: Build
         working-directory: frontend
+        env:
+          CI: false
         run: npm run build
 
       - name: Deploy to GitHub Pages
