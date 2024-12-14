@@ -1,35 +1,49 @@
-# Use Python 3.9 slim image
-FROM python:3.9-slim
+# Use Python slim image for smaller attack surface
+FROM python:3.11-slim-bullseye as builder
 
-# Set working directory
-WORKDIR /app
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3-dev \
-    libmagic1 \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        gcc \
+        libpq-dev \
+        python3-dev \
+        curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python packages
+# Create and set working directory
+WORKDIR /app
+
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
 
-# Create translations directory
-RUN mkdir -p app/translations
+# Create necessary directories with correct permissions
+RUN mkdir -p /tmp/uploads \
+    && chown -R appuser:appuser /tmp/uploads \
+    && chmod 755 /tmp/uploads
 
-# Initialize translations for supported languages
-RUN pybabel extract -F babel.cfg -o app/translations/messages.pot .
-RUN pybabel init -i app/translations/messages.pot -d app/translations -l en
-RUN pybabel init -i app/translations/messages.pot -d app/translations -l es
-RUN pybabel init -i app/translations/messages.pot -d app/translations -l pt
-RUN pybabel compile -d app/translations
+# Switch to non-root user
+USER appuser
 
-ENV FLASK_APP=run.py
-EXPOSE 5000
+# Set secure file permissions
+RUN find . -type f -exec chmod 644 {} \; \
+    && find . -type d -exec chmod 755 {} \;
 
-# Start the application
-CMD ["flask", "run", "--host=0.0.0.0"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+# Command to run the application
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--threads", "2", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-", "app:create_app()"]
