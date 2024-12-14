@@ -1,0 +1,70 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "fix(deps)"
+      prefix-development: "chore(deps-dev)"
+    reviewers:
+      - "cm777-dev"
+    assignees:
+      - "cm777-dev"
+    groups:
+      production-dependencies:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "dev-*"
+          - "test-*"
+    versioning-strategy:
+      increase: "patch"
+      
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "docker"
+      - "dependencies"
+    commit-message:
+      prefix: "fix(docker)"
+    reviewers:
+      - "cm777-dev"
+      
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "ci-cd"
+      - "dependencies"
+    commit-message:
+      prefix: "chore(ci)"
+    reviewers:
+      - "cm777-dev"
+      
+  # Terraform dependencies
+  - package-ecosystem: "terraform"
+    directory: "/terraform"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "infrastructure"
+      - "dependencies"
+    commit-message:
+      prefix: "fix(infra)"
+    reviewers:
+      - "cm777-dev"

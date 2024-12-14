@@ -1,0 +1,79 @@
+name: Development Environment Setup
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened]
+
+jobs:
+  setup-dev:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Development Branch
+        run: |
+          BRANCH_NAME="dev/${GITHUB_SHA::8}"
+          git checkout -b $BRANCH_NAME
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install development dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pre-commit black flake8 isort mypy pytest pytest-cov bandit safety
+
+      - name: Set up pre-commit hooks
+        run: |
+          pre-commit install
+          pre-commit run --all-files
+
+      - name: Create development environment
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          cd terraform
+          terraform init
+          terraform workspace new dev || terraform workspace select dev
+          terraform plan \
+            -var="environment=dev" \
+            -var="domain_name=${{ secrets.DOMAIN_NAME }}" \
+            -var="db_username=${{ secrets.DB_USERNAME }}" \
+            -var="db_password=${{ secrets.DB_PASSWORD }}" \
+            -var="github_token=${{ secrets.GITHUB_TOKEN }}" \
+            -var="jwt_secret=${{ secrets.JWT_SECRET }}" \
+            -var="api_key=${{ secrets.API_KEY }}" \
+            -var="alert_email=${{ secrets.ALERT_EMAIL }}" \
+            -out=dev.tfplan
+
+      - name: Push development branch
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add .
+          git commit -m "chore(dev): Set up development environment"
+          git push origin $BRANCH_NAME
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: "feat(dev): Set up development environment"
+          body: |
+            This PR sets up a new development environment with:
+            - Pre-commit hooks
+            - Development dependencies
+            - Terraform workspace
+            - Environment configuration
+            
+            Please review and merge to start development.
+          branch: ${{ env.BRANCH_NAME }}
+          base: main
+          labels: development, infrastructure

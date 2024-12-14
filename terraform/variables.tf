@@ -38,3 +38,20 @@ variable "api_key" {
   type        = string
   sensitive   = true
 }
+
+variable "alert_email" {
+  description = "Email address for monitoring alerts"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "preview"
+}
+
+variable "app_name" {
+  description = "Application name"
+  type        = string
+  default     = "utility-bill-manager"
+}
