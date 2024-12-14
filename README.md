@@ -1,124 +1,113 @@
 # Utility Bill Manager
 
-A comprehensive SaaS platform for tracking, analyzing, and managing utility bills with advanced sustainability and compliance features.
+A secure and efficient utility bill management system with advanced security features.
 
 ## Features
 
-- **Bill Processing**
-  - Bulk file upload support
-  - Real-time validation
-  - Multiple file format support (PDF, Excel, CSV)
-  - Automated data extraction
+- **Secure File Handling**
+  - End-to-end encryption for sensitive files
+  - Secure file storage with AWS S3
+  - File integrity verification
+  - MIME type validation
 
-- **Analytics & Benchmarking**
-  - Usage comparison
-  - Performance metrics
-  - Cost analysis
-  - Industry benchmarks
+- **API Security**
+  - API key authentication
+  - Rate limiting
+  - Request validation
+  - Response sanitization
+  - CORS protection
 
-- **Compliance Management**
-  - Regulatory requirement tracking
-  - Document management
-  - Audit history
-  - Standardized reporting
+- **Data Protection**
+  - Field-level encryption
+  - AWS KMS integration
+  - Secure key management
+  - Data key rotation
 
-- **Sustainability Dashboard**
-  - Carbon footprint tracking
-  - Emissions breakdown
-  - Goal setting and monitoring
-  - Initiative tracking
+- **Infrastructure Security**
+  - Docker security best practices
+  - Network isolation
+  - Resource limits
+  - Health monitoring
 
-## Tech Stack
+## Preview Environment
 
-- Frontend: React 17+, Material-UI
-- Backend: Flask (Python 3.9)
-- Database: PostgreSQL
-- Containerization: Docker
-- CI/CD: GitHub Actions
+Access the preview environment at: https://preview.utility-bill-manager.com
 
-## Prerequisites
-
-- Node.js 14+
-- Python 3.9+
-- Docker Desktop
-- PostgreSQL 13+
+The preview environment is automatically deployed on each push to the main branch and includes:
+- Automated testing
+- Security scanning
+- Infrastructure deployment
+- SSL/TLS encryption
+- Monitoring and logging
 
 ## Development Setup
 
 1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/utility-bill-manager.git
-cd utility-bill-manager
-```
+   ```bash
+   git clone https://github.com/yourusername/utility-bill-manager.git
+   cd utility-bill-manager
+   ```
 
-2. Install frontend dependencies:
-```bash
-cd frontend
-npm install
-```
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-3. Install backend dependencies:
-```bash
-cd backend
-pip install -r requirements.txt
-```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 4. Set up environment variables:
-```bash
-cp .env.example .env
-# Edit .env with your configurations
-```
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
 
-5. Start development servers:
+5. Run the development server:
+   ```bash
+   docker-compose up --build
+   ```
 
-Frontend:
-```bash
-cd frontend
-npm start
-```
+## Security Features
 
-Backend:
-```bash
-cd backend
-flask run
-```
+### Encryption
+- AES-256 encryption for data at rest
+- TLS 1.3 for data in transit
+- AWS KMS for key management
+- Secure key rotation
 
-## Docker Deployment
+### Authentication & Authorization
+- JWT-based authentication
+- Role-based access control
+- API key management
+- Session security
 
-1. Build and start services:
-```bash
-docker-compose up --build
-```
+### Infrastructure
+- Docker container security
+- Network isolation
+- Resource limits
+- Health checks
+- Automated security scanning
 
-2. Access the application:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
+## Deployment
 
-3. Stop services:
-```bash
-docker-compose down
-```
+The application is automatically deployed using GitHub Actions:
 
-## Testing
+1. Push to main branch triggers the workflow
+2. Tests and security scans are run
+3. Docker images are built and pushed
+4. AWS ECS deployment is updated
+5. DNS records are configured
 
-Frontend:
-```bash
-cd frontend
-npm test
-```
+## Monitoring & Logging
 
-Backend:
-```bash
-cd backend
-pytest
-```
-
-## CI/CD Pipeline
-
-The project includes a GitHub Actions workflow that:
-1. Runs tests for both frontend and backend
-2. Builds Docker images
-3. Deploys to production on successful merge to main
+- AWS CloudWatch integration
+- Structured logging
+- Audit trail
+- Health monitoring
+- Performance metrics
 
 ## Contributing
 
@@ -128,10 +117,10 @@ The project includes a GitHub Actions workflow that:
 4. Push to the branch
 5. Create a Pull Request
 
+## Security
+
+For security issues, please email security@yourdomain.com
+
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, email support@utilitybillmanager.com or create an issue in the repository.
+MIT License - see LICENSE file for details
