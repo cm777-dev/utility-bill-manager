@@ -1,0 +1,7 @@
+aws_region = "us-east-1"
+domain_name = "utility-bill-manager.com"
+db_username = "dbadmin"
+db_password = "your-secure-password"
+github_token = "your-github-token"
+jwt_secret = "your-jwt-secret"
+api_key = "your-api-key"
