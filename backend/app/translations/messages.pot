@@ -1,0 +1,90 @@
+# Translations template for Utility Bill Manager.
+# Copyright (C) 2024 Your Company
+# This file is distributed under the same license as the Utility Bill Manager project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: support@yourdomain.com\n"
+"POT-Creation-Date: 2024-12-14 14:00-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+# Error messages
+msgid "No file provided"
+msgstr ""
+
+msgid "No file selected"
+msgstr ""
+
+msgid "Invalid linked_account_meter_id"
+msgstr ""
+
+msgid "Bill is already approved"
+msgstr ""
+
+msgid "Bill is already rejected"
+msgstr ""
+
+msgid "No bills selected for export"
+msgstr ""
+
+msgid "One or more bills not found"
+msgstr ""
+
+msgid "All bills must be approved before export"
+msgstr ""
+
+# Success messages
+msgid "Bill processing started"
+msgstr ""
+
+msgid "Bill export started"
+msgstr ""
+
+# Field labels
+msgid "Organization"
+msgstr ""
+
+msgid "Site"
+msgstr ""
+
+msgid "Cost Center"
+msgstr ""
+
+msgid "Account"
+msgstr ""
+
+msgid "Vendor"
+msgstr ""
+
+msgid "Rate Schedule"
+msgstr ""
+
+msgid "Meter"
+msgstr ""
+
+msgid "Bill"
+msgstr ""
+
+# Status messages
+msgid "pending"
+msgstr ""
+
+msgid "approved"
+msgstr ""
+
+msgid "rejected"
+msgstr ""
+
+msgid "success"
+msgstr ""
+
+msgid "failed"
+msgstr ""

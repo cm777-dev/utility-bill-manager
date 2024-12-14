@@ -1,97 +1,137 @@
+from flask import Blueprint, request, jsonify
+from werkzeug.utils import secure_filename
 import os
-from datetime import datetime
-from flask import jsonify, request, current_app
-from flask_jwt_extended import jwt_required, get_jwt_identity
-import boto3
 from app import db
-from app.api import bp
-from app.models import Bill
+from app.models import Bill, BillAudit, LinkedAccountMeter
+from app.schemas import BillSchema, BillAuditSchema
+from app.tasks import process_bill_file, export_bills_to_accounting
+from flask_jwt_extended import jwt_required
 
-s3 = boto3.client(
-    's3',
-    aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-    aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
-)
+bp = Blueprint('bills', __name__)
+bill_schema = BillSchema()
+bills_schema = BillSchema(many=True)
+bill_audit_schema = BillAuditSchema(many=True)
+
+UPLOAD_FOLDER = 'uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
 @bp.route('/bills', methods=['POST'])
 @jwt_required()
 def create_bill():
-    current_user_id = get_jwt_identity()
-    
-    # Handle file upload
+    """Upload and process a new bill"""
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
-        
+    
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
-        
-    # Upload to S3
-    file_path = f'bills/{current_user_id}/{datetime.now().strftime("%Y%m%d_%H%M%S")}_{file.filename}'
-    s3.upload_fileobj(
-        file,
-        current_app.config['S3_BUCKET_NAME'],
-        file_path
-    )
+
+    linked_account_meter_id = request.form.get('linked_account_meter_id')
+    if not linked_account_meter_id:
+        return jsonify({'error': 'linked_account_meter_id is required'}), 400
+
+    # Verify linked_account_meter exists
+    lam = LinkedAccountMeter.query.get(linked_account_meter_id)
+    if not lam:
+        return jsonify({'error': 'Invalid linked_account_meter_id'}), 404
+
+    # Save file temporarily
+    filename = secure_filename(file.filename)
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(file_path)
+
+    # Process file asynchronously
+    task = process_bill_file.delay(file_path, linked_account_meter_id)
     
-    # Create bill record
-    data = request.form
-    bill = Bill(
-        user_id=current_user_id,
-        utility_type=data['utility_type'],
-        bill_date=datetime.strptime(data['bill_date'], '%Y-%m-%d').date(),
-        due_date=datetime.strptime(data['due_date'], '%Y-%m-%d').date(),
-        amount=float(data['amount']),
-        usage_amount=float(data.get('usage_amount', 0)),
-        file_path=file_path
-    )
-    
-    db.session.add(bill)
-    db.session.commit()
-    
-    return jsonify(bill.to_dict()), 201
+    return jsonify({
+        'message': 'Bill processing started',
+        'task_id': task.id
+    }), 202
 
 @bp.route('/bills', methods=['GET'])
 @jwt_required()
 def get_bills():
-    current_user_id = get_jwt_identity()
-    bills = Bill.query.filter_by(user_id=current_user_id).order_by(Bill.bill_date.desc()).all()
-    return jsonify([bill.to_dict() for bill in bills])
+    """Get all bills with optional filtering"""
+    # Get query parameters
+    status = request.args.get('status')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    # Build query
+    query = Bill.query
+    if status:
+        query = query.filter(Bill.status == status)
+    if start_date:
+        query = query.filter(Bill.bill_date >= start_date)
+    if end_date:
+        query = query.filter(Bill.bill_date <= end_date)
+    
+    bills = query.all()
+    return jsonify(bills_schema.dump(bills)), 200
 
 @bp.route('/bills/<int:id>', methods=['GET'])
 @jwt_required()
 def get_bill(id):
-    current_user_id = get_jwt_identity()
-    bill = Bill.query.filter_by(id=id, user_id=current_user_id).first_or_404()
-    return jsonify(bill.to_dict())
+    """Get a specific bill"""
+    bill = Bill.query.get_or_404(id)
+    return jsonify(bill_schema.dump(bill)), 200
 
-@bp.route('/bills/<int:id>', methods=['PUT'])
+@bp.route('/bills/<int:id>/audits', methods=['GET'])
 @jwt_required()
-def update_bill(id):
-    current_user_id = get_jwt_identity()
-    bill = Bill.query.filter_by(id=id, user_id=current_user_id).first_or_404()
-    
-    data = request.get_json()
-    for field in ['utility_type', 'amount', 'status', 'usage_amount']:
-        if field in data:
-            setattr(bill, field, data[field])
-            
-    db.session.commit()
-    return jsonify(bill.to_dict())
+def get_bill_audits(id):
+    """Get audits for a specific bill"""
+    bill = Bill.query.get_or_404(id)
+    return jsonify(bill_audit_schema.dump(bill.audits)), 200
 
-@bp.route('/bills/<int:id>', methods=['DELETE'])
+@bp.route('/bills/<int:id>/approve', methods=['POST'])
 @jwt_required()
-def delete_bill(id):
-    current_user_id = get_jwt_identity()
-    bill = Bill.query.filter_by(id=id, user_id=current_user_id).first_or_404()
+def approve_bill(id):
+    """Approve a bill"""
+    bill = Bill.query.get_or_404(id)
     
-    # Delete file from S3
-    if bill.file_path:
-        s3.delete_object(
-            Bucket=current_app.config['S3_BUCKET_NAME'],
-            Key=bill.file_path
-        )
+    if bill.status == 'approved':
+        return jsonify({'error': 'Bill is already approved'}), 400
     
-    db.session.delete(bill)
+    bill.status = 'approved'
     db.session.commit()
-    return '', 204
+    
+    return jsonify(bill_schema.dump(bill)), 200
+
+@bp.route('/bills/<int:id>/reject', methods=['POST'])
+@jwt_required()
+def reject_bill(id):
+    """Reject a bill"""
+    bill = Bill.query.get_or_404(id)
+    
+    if bill.status == 'rejected':
+        return jsonify({'error': 'Bill is already rejected'}), 400
+    
+    bill.status = 'rejected'
+    db.session.commit()
+    
+    return jsonify(bill_schema.dump(bill)), 200
+
+@bp.route('/bills/export', methods=['POST'])
+@jwt_required()
+def export_bills():
+    """Export bills to accounting system"""
+    bill_ids = request.json.get('bill_ids', [])
+    if not bill_ids:
+        return jsonify({'error': 'No bills selected for export'}), 400
+    
+    # Verify all bills exist and are approved
+    bills = Bill.query.filter(Bill.id.in_(bill_ids)).all()
+    if len(bills) != len(bill_ids):
+        return jsonify({'error': 'One or more bills not found'}), 404
+    
+    if not all(bill.status == 'approved' for bill in bills):
+        return jsonify({'error': 'All bills must be approved before export'}), 400
+    
+    # Start export task
+    task = export_bills_to_accounting.delay(bill_ids)
+    
+    return jsonify({
+        'message': 'Bill export started',
+        'task_id': task.id
+    }), 202

@@ -1,40 +1,94 @@
 version: '3.8'
 
 services:
+  web:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/utility_bills
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - redis
+    networks:
+      - app-network
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A app.celery worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/utility_bills
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - web
+      - redis
+    networks:
+      - app-network
+
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A app.celery flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
+      - worker
+    networks:
+      - app-network
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    environment:
-      - REACT_APP_API_URL=http://localhost:5000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
-      - backend
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    environment:
-      - FLASK_APP=app.py
-      - FLASK_ENV=development
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/utility_bills
-    depends_on:
-      - db
+      - web
+    networks:
+      - app-network
 
   db:
     image: postgres:13
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=utility_bills
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

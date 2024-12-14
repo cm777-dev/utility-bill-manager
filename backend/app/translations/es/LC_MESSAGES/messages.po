@@ -1,0 +1,89 @@
+# Spanish translations for Utility Bill Manager.
+# Copyright (C) 2024 Your Company
+# This file is distributed under the same license as the Utility Bill Manager project.
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: support@yourdomain.com\n"
+"POT-Creation-Date: 2024-12-14 14:00-0300\n"
+"PO-Revision-Date: 2024-12-14 14:00-0300\n"
+"Last-Translator: Your Name <your.email@example.com>\n"
+"Language: es\n"
+"Language-Team: Spanish\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+# Error messages
+msgid "No file provided"
+msgstr "No se proporcionó ningún archivo"
+
+msgid "No file selected"
+msgstr "Ningún archivo seleccionado"
+
+msgid "Invalid linked_account_meter_id"
+msgstr "ID de medidor de cuenta vinculada inválido"
+
+msgid "Bill is already approved"
+msgstr "La factura ya está aprobada"
+
+msgid "Bill is already rejected"
+msgstr "La factura ya está rechazada"
+
+msgid "No bills selected for export"
+msgstr "No hay facturas seleccionadas para exportar"
+
+msgid "One or more bills not found"
+msgstr "Una o más facturas no encontradas"
+
+msgid "All bills must be approved before export"
+msgstr "Todas las facturas deben estar aprobadas antes de exportar"
+
+# Success messages
+msgid "Bill processing started"
+msgstr "Procesamiento de factura iniciado"
+
+msgid "Bill export started"
+msgstr "Exportación de factura iniciada"
+
+# Field labels
+msgid "Organization"
+msgstr "Organización"
+
+msgid "Site"
+msgstr "Sitio"
+
+msgid "Cost Center"
+msgstr "Centro de Costos"
+
+msgid "Account"
+msgstr "Cuenta"
+
+msgid "Vendor"
+msgstr "Proveedor"
+
+msgid "Rate Schedule"
+msgstr "Tabla de Tarifas"
+
+msgid "Meter"
+msgstr "Medidor"
+
+msgid "Bill"
+msgstr "Factura"
+
+# Status messages
+msgid "pending"
+msgstr "pendiente"
+
+msgid "approved"
+msgstr "aprobado"
+
+msgid "rejected"
+msgstr "rechazado"
+
+msgid "success"
+msgstr "éxito"
+
+msgid "failed"
+msgstr "fallido"
